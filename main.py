@@ -1,9 +1,10 @@
-import groq, os, requests
+import groq, os, requests, markdown
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-
+from flask_cors import CORS
 load_dotenv()
 app = Flask(__name__)
+CORS(app)
 GROQ_KEY = os.getenv("GROQ_KEY")
 
 groq_client = groq.Groq(api_key=GROQ_KEY)
@@ -20,12 +21,12 @@ def chat():
             temperature=1,
             max_tokens=96,
         )
-        reply = response.choices[0].message.content
-        response = jsonify({"reply": reply})
+        reply = markdown.markdown(response.choices[0].message.content)
+        response = jsonify({"role": "assistant", "content": reply})
         print(f"<--- REPLY: {response.get_json()} --->")
         return response, 200
     except Exception as e:
-        print(f"<--- AN ERROR OCCURED --->")
+        print(f"<--- AN ERROR OCCURED {e}--->")
         return jsonify({"error": str(e)}), 500
         
 
