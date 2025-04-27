@@ -1,3 +1,5 @@
 *.env
 frontend/*
 !frontend/.gitkeep
+!frontend/dist/*
+!frontend/dist
