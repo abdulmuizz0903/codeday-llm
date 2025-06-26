@@ -19,7 +19,7 @@ def chat():
             model="llama3-8b-8192",
             messages=incoming["messages"],
             temperature=1,
-            max_tokens=96,
+            max_tokens=200,
         )
         reply = markdown.markdown(response.choices[0].message.content)
         response = jsonify({"role": "assistant", "content": reply})
@@ -28,8 +28,7 @@ def chat():
     except Exception as e:
         print(f"<--- AN ERROR OCCURED {e}--->")
         return jsonify({"error": str(e)}), 500
-        
-
+    
 
 if __name__ == "__main__":
     app.run(debug=True, port=2718)
