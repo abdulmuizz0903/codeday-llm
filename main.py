@@ -1,13 +1,24 @@
 import groq, os, requests, markdown
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template, send_from_directory
 from dotenv import load_dotenv
 from flask_cors import CORS
 load_dotenv()
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_folder='frontend/dist/assets',
+            template_folder='frontend/dist')
 CORS(app)
 GROQ_KEY = os.getenv("GROQ_KEY")
 
 groq_client = groq.Groq(api_key=GROQ_KEY)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/assets/<path:filename>')
+def assets(filename):
+    return send_from_directory('frontend/dist/assets', filename)
+
 
 @app.route('/chat', methods=['POST'])
 def chat():
