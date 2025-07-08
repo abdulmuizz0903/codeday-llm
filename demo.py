@@ -25,6 +25,7 @@ while True:
             )
             formatted_response = response.choices[0].message.content
             conversation_history.append({"role": "assistant", "content": formatted_response})
+            print(conversation_history)
             print(f"----- \n Groq:{formatted_response} \n-----")
         except Exception as e:
             print(f"<<< AN ERROR OCCURED >>> \n {e} \n --------------------------------------------")

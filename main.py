@@ -3,22 +3,22 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 from dotenv import load_dotenv
 from flask_cors import CORS
 load_dotenv()
+
+GROQ_KEY = os.getenv("GROQ_KEY")
+groq_client = groq.Groq(api_key=GROQ_KEY)
+
+# IGNORE --- for serving frontend --- IGNORE
 app = Flask(__name__, 
             static_folder='frontend/dist/assets',
             template_folder='frontend/dist')
 CORS(app)
-GROQ_KEY = os.getenv("GROQ_KEY")
-
-groq_client = groq.Groq(api_key=GROQ_KEY)
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 @app.route('/assets/<path:filename>')
 def assets(filename):
     return send_from_directory('frontend/dist/assets', filename)
-
+# --- END OF FRONTEND ---
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -39,7 +39,6 @@ def chat():
     except Exception as e:
         print(f"<--- AN ERROR OCCURED {e}--->")
         return jsonify({"error": str(e)}), 500
-    
 
 if __name__ == "__main__":
     app.run(debug=True, port=2718)
