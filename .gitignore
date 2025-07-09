@@ -3,3 +3,7 @@ frontend/*
 !frontend/.gitkeep
 !frontend/dist/*
 !frontend/dist
+codeday-llm/*
+__pycache__/*
+frontend/__pycache__/*
+!frontend/frontend_routes.py

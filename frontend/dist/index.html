@@ -11,5 +11,166 @@
   </head>
   <body>
     <div id="root"></div>
+    <button class="clear-chat-btn" onclick="clearChat()">🗑️ Clear Chat</button>
+    <button class="dark-mode-toggle" id="darkModeToggle" onclick="toggleDarkMode()">🌙</button>
+    <script>
+      // Global variables for typing indicator state
+      let isTyping = false;
+      let userMessageCount = 0;
+      let botMessageCount = 0;
+
+      function toggleDarkMode() {
+        const body = document.body;
+        const button = document.getElementById('darkModeToggle');
+        
+        if (body.getAttribute('data-theme') === 'dark') {
+          body.removeAttribute('data-theme');
+          button.textContent = '🌙';
+          localStorage.setItem('darkMode', 'false');
+        } else {
+          body.setAttribute('data-theme', 'dark');
+          button.textContent = '☀️';
+          localStorage.setItem('darkMode', 'true');
+        }
+      }
+
+      function clearChat() {
+        if (confirm('Are you sure you want to clear the chat history?')) {
+          // Hide typing indicator first
+          hideTypingIndicator();
+          // Reset message counts
+          userMessageCount = 0;
+          botMessageCount = 0;
+          isTyping = false;
+          // Reload the page
+          window.location.reload();
+        }
+      }
+
+      // Add typing indicator functionality
+      function showTypingIndicator() {
+        const chatBox = document.querySelector('.chat-box');
+        if (chatBox) {
+          // Remove existing typing indicator if present
+          const existing = document.getElementById('typing-indicator');
+          if (existing) existing.remove();
+          
+          const typingDiv = document.createElement('div');
+          typingDiv.className = 'message-container bot-message';
+          typingDiv.id = 'typing-indicator';
+          typingDiv.innerHTML = `
+            <div class="message">
+              <div class="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          `;
+          chatBox.appendChild(typingDiv);
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+      }
+
+      function hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+
+      // Monitor DOM changes and form submissions for typing indicator
+      document.addEventListener('DOMContentLoaded', function() {        
+        // Monitor chat box for message changes
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length > 0) {
+              const chatBox = document.querySelector('.chat-box');
+              if (chatBox) {
+                const currentUserMessages = chatBox.querySelectorAll('.user-message').length;
+                const currentBotMessages = chatBox.querySelectorAll('.bot-message:not(#typing-indicator)').length;
+                
+                console.log('Mutation detected - Users:', currentUserMessages, 'Bots:', currentBotMessages, 'IsTyping:', isTyping);
+                
+                // If a new user message was added and we're not already showing typing
+                if (currentUserMessages > userMessageCount && !isTyping) {
+                  console.log('New user message detected, showing typing indicator');
+                  isTyping = true;
+                  userMessageCount = currentUserMessages;
+                  showTypingIndicator();
+                }
+                
+                // If a new bot message was added and we're showing typing
+                if (currentBotMessages > botMessageCount && isTyping) {
+                  console.log('New bot message detected, hiding typing indicator');
+                  botMessageCount = currentBotMessages;
+                  hideTypingIndicator();
+                  isTyping = false;
+                }
+              }
+            }
+          });
+        });
+        
+        // Initialize message counts
+        const initializeCounts = () => {
+          const chatBox = document.querySelector('.chat-box');
+          if (chatBox) {
+            userMessageCount = chatBox.querySelectorAll('.user-message').length;
+            botMessageCount = chatBox.querySelectorAll('.bot-message:not(#typing-indicator)').length;
+            console.log('Initial counts - Users:', userMessageCount, 'Bots:', botMessageCount);
+          }
+        };
+        
+        // Start observing
+        const chatBox = document.querySelector('.chat-box');
+        if (chatBox) {
+          initializeCounts();
+          observer.observe(chatBox, {
+            childList: true,
+            subtree: true
+          });
+        } else {
+          // If chat box doesn't exist yet, wait for it
+          const appObserver = new MutationObserver(function(mutations) {
+            const chatBox = document.querySelector('.chat-box');
+            if (chatBox) {
+              initializeCounts();
+              observer.observe(chatBox, {
+                childList: true,
+                subtree: true
+              });
+              appObserver.disconnect();
+            }
+          });
+          appObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+        }
+        
+        // Fallback: hide typing indicator after 15 seconds
+        setInterval(() => {
+          if (isTyping) {
+            const chatBox = document.querySelector('.chat-box');
+            if (chatBox) {
+              const currentBotMessages = chatBox.querySelectorAll('.bot-message:not(#typing-indicator)').length;
+              if (currentBotMessages > botMessageCount) {
+                hideTypingIndicator();
+                isTyping = false;
+                botMessageCount = currentBotMessages;
+              }
+            }
+          }
+        }, 1000);
+      });
+
+      // Check for saved dark mode preference or default to light mode
+      const savedDarkMode = localStorage.getItem('darkMode');
+      if (savedDarkMode === 'true') {
+        document.body.setAttribute('data-theme', 'dark');
+        document.getElementById('darkModeToggle').textContent = '☀️';
+      }
+    </script>
   </body>
 </html>
